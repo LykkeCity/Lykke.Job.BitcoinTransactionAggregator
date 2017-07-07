@@ -3,8 +3,8 @@
 namespace Lykke.Job.BitcoinTransactionAggregator.Core.Services
 {
     // NOTE: This is job service interface example
-    public interface IMyFooService
+    public interface IBitcoitBlocksHandler
     {
-        Task FooAsync();
+        Task ProcessAsync();
     }
 }

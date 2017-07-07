@@ -59,17 +59,7 @@ namespace Lykke.Job.BitcoinTransactionAggregator
 
             builder.RegisterModule(new JobModule(appSettings.BitcoinTransactionAggregatorJob, log));
 
-            if (string.IsNullOrWhiteSpace(appSettings.BitcoinTransactionAggregatorJob.TriggerQueueConnectionString))
-            {
-                builder.AddTriggers();
-            }
-            else
-            {
-                builder.AddTriggers(pool =>
-                {
-                    pool.AddDefaultConnection(appSettings.BitcoinTransactionAggregatorJob.TriggerQueueConnectionString);
-                });
-            }
+            builder.AddTriggers();
 
             builder.Populate(services);
 

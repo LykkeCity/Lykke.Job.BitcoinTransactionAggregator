@@ -6,80 +6,80 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
     public class HealthService : IHealthService
     {
         // NOTE: These are example properties
-        public DateTime LastFooStartedMoment { get; private set; }
-        public TimeSpan LastFooDuration { get; private set; }
-        public TimeSpan MaxHealthyFooDuration { get; }
+        public DateTime LastBbServiceStartedMoment { get; private set; }
+        public TimeSpan LastBbServiceDuration { get; private set; }
+        public TimeSpan MaxHealthyBbServiceDuration { get; }
 
         // NOTE: These are example properties
-        private bool WasLastFooFailed { get; set; }
-        private bool WasLastFooCompleted { get; set; }
-        private bool WasClientsFooEverStarted { get; set; }
+        private bool WasLastBbServiceFailed { get; set; }
+        private bool WasLastBbServiceCompleted { get; set; }
+        private bool WasClientsBbServiceEverStarted { get; set; }
 
         // NOTE: When you change parameters, don't forget to look in to JobModule
 
-        public HealthService(TimeSpan maxHealthyFooDuration)
+        public HealthService(TimeSpan maxHealthyBbServiceDuration)
         {
-            MaxHealthyFooDuration = maxHealthyFooDuration;
+            MaxHealthyBbServiceDuration = maxHealthyBbServiceDuration;
         }
 
         // NOTE: This method probably would stay in the real job, but will be modified
         public string GetHealthViolationMessage()
         {
-            if (WasLastFooFailed)
+            if (WasLastBbServiceFailed)
             {
-                return "Last foo was failed";
+                return "Last BbService was failed";
             }
 
-            if (!WasLastFooCompleted && !WasLastFooFailed && !WasClientsFooEverStarted)
+            if (!WasLastBbServiceCompleted && !WasLastBbServiceFailed && !WasClientsBbServiceEverStarted)
             {
-                return "Waiting for first foo execution started";
+                return "Waiting for first BbService execution started";
             }
 
-            if (!WasLastFooCompleted && !WasLastFooFailed && WasClientsFooEverStarted)
+            if (!WasLastBbServiceCompleted && !WasLastBbServiceFailed && WasClientsBbServiceEverStarted)
             {
-                return $"Waiting {DateTime.UtcNow - LastFooStartedMoment} for first foo execution completed";
+                return $"Waiting {DateTime.UtcNow - LastBbServiceStartedMoment} for first BbService execution completed";
             }
 
-            if (LastFooDuration > MaxHealthyFooDuration)
+            if (LastBbServiceDuration > MaxHealthyBbServiceDuration)
             {
-                return $"Last foo was lasted for {LastFooDuration}, which is too long";
+                return $"Last BbService was lasted for {LastBbServiceDuration}, which is too long";
             }
             return null;
         }
 
         // NOTE: These are example methods
-        public void TraceFooStarted()
+        public void TraceBbServiceStarted()
         {
-            LastFooStartedMoment = DateTime.UtcNow;
-            WasClientsFooEverStarted = true;
+            LastBbServiceStartedMoment = DateTime.UtcNow;
+            WasClientsBbServiceEverStarted = true;
         }
 
-        public void TraceFooCompleted()
+        public void TraceBbServiceCompleted()
         {
-            LastFooDuration = DateTime.UtcNow - LastFooStartedMoment;
-            WasLastFooCompleted = true;
-            WasLastFooFailed = false;
+            LastBbServiceDuration = DateTime.UtcNow - LastBbServiceStartedMoment;
+            WasLastBbServiceCompleted = true;
+            WasLastBbServiceFailed = false;
         }
 
-        public void TraceFooFailed()
+        public void TraceBbServiceFailed()
         {
-            WasLastFooCompleted = false;
-            WasLastFooFailed = true;
+            WasLastBbServiceCompleted = false;
+            WasLastBbServiceFailed = true;
         }
 
         public void TraceBooStarted()
         {
-            // TODO: See Foo
+            // TODO: See BbService
         }
 
         public void TraceBooCompleted()
         {
-            // TODO: See Foo
+            // TODO: See BbService
         }
 
         public void TraceBooFailed()
         {
-            // TODO: See Foo
+            // TODO: See BbService
         }
     }
 }

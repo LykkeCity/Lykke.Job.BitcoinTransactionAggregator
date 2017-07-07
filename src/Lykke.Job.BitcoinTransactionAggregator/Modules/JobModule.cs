@@ -1,11 +1,17 @@
 ﻿using System;
+using System.Net;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Common.Log;
+using Lykke.AzureRepositories;
+using Lykke.AzureRepositories.Azure.Tables;
+using Lykke.Core;
 using Lykke.Job.BitcoinTransactionAggregator.Core;
 using Lykke.Job.BitcoinTransactionAggregator.Core.Services;
 using Lykke.Job.BitcoinTransactionAggregator.Services;
+using Lykke.Pay.Service.Wallets.Client;
 using Microsoft.Extensions.DependencyInjection;
+using NBitcoin.RPC;
 
 namespace Lykke.Job.BitcoinTransactionAggregator.Modules
 {
@@ -38,20 +44,48 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Modules
                 .SingleInstance()
                 .WithParameter(TypedParameter.From(TimeSpan.FromSeconds(30)));
 
-            // NOTE: Service registrations example:
+            var bitcoinAggRepository = new BitcoinAggRepository(
+                        new AzureTableStorage<BitcoinAggEntity>(
+                            _settings.Db.MerchantWalletConnectionString, "BitcoinAgg",
+                            null),
+                        new AzureTableStorage<BitcoinHeightEntity>(
+                            _settings.Db.MerchantWalletConnectionString, "BitcoinHeight",
+                            null));
+            builder.RegisterInstance(bitcoinAggRepository)
+                .As<IBitcoinAggRepository>()
+                .SingleInstance();
 
-            builder.RegisterType<MyFooService>()
-                .As<IMyFooService>();
+            var client = new RPCClient(
+                new NetworkCredential(_settings.Rpc.UserName,
+                    _settings.Rpc.Password),
+                new Uri(_settings.Rpc.Url));
+            builder.RegisterInstance(client)
+                .As<RPCClient>()
+                .SingleInstance();
 
-            builder.RegisterType<MyBooService>()
-                .As<IMyBooService>();
+            builder.RegisterType<PayWalletservice>()
+                .As<IPayWalletservice>()
+                .SingleInstance()
+                .WithParameter(TypedParameter.From(new Uri(_settings.Services.PayWalletServiceUrl))); ;
 
-            // NOTE: You can implement your own poison queue notifier. See https://github.com/LykkeCity/JobTriggers/blob/master/readme.md
-            // builder.Register<PoisionQueueNotifierImplementation>().As<IPoisionQueueNotifier>();
+            builder.RegisterType<BitcoinBroadcast>()
+                .As<IBitcoinBroadcast>()
+                .As<IStartable>()
+                .SingleInstance();
 
-            // TODO: Add your dependencies here
+            builder.RegisterType<BitcoitBlocksHandler>()
+                .As<IBitcoitBlocksHandler>()
+                .SingleInstance();
 
-            builder.Populate(_services);
+
+
+           
+
+        builder.Populate(_services);
         }
+
+        private readonly IBitcoinAggRepository _bitcoinAggRepository;
+
+
     }
 }

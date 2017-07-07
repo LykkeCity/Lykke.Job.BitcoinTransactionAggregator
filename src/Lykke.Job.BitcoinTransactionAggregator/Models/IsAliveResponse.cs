@@ -8,8 +8,8 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Models
         public string Env { get; set; }
 
         // NOTE: Health status information example: 
-        public DateTime LastFooStartedMoment { get; set; }
-        public TimeSpan LastFooDuration { get; set; }
+        public DateTime LastBbHandlerStartedMoment { get; set; }
+        public TimeSpan LastBbHandlerDuration { get; set; }
         public TimeSpan MaxHealthyFooDuration { get; set; }
     }
 }

@@ -43,9 +43,9 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Controllers
                 Env = Environment.GetEnvironmentVariable("ENV_INFO"),
 
                 // NOTE: Health status information example: 
-                LastFooStartedMoment = _healthService.LastFooStartedMoment,
-                LastFooDuration = _healthService.LastFooDuration,
-                MaxHealthyFooDuration = _healthService.MaxHealthyFooDuration
+                LastBbHandlerStartedMoment = _healthService.LastBbServiceStartedMoment,
+                LastBbHandlerDuration = _healthService.MaxHealthyBbServiceDuration,
+                MaxHealthyFooDuration = _healthService.MaxHealthyBbServiceDuration
             });
         }
     }

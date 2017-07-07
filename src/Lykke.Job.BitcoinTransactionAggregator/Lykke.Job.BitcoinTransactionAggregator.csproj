@@ -39,4 +39,8 @@
     <ProjectReference Include="..\Lykke.Job.BitcoinTransactionAggregator.Core\Lykke.Job.BitcoinTransactionAggregator.Core.csproj" />
     <ProjectReference Include="..\Lykke.Job.BitcoinTransactionAggregator.Services\Lykke.Job.BitcoinTransactionAggregator.Services.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Contract\" />
+  </ItemGroup>
 </Project>
