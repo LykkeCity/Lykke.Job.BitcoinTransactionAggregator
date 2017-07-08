@@ -52,9 +52,11 @@ namespace Lykke.Job.BitcoinTransactionAggregator
             });
 
             var builder = new ContainerBuilder();
-            var appSettings = Environment.IsDevelopment()
-                ? Configuration.Get<AppSettings>()
-                : HttpSettingsLoader.Load<AppSettings>(Configuration.GetValue<string>("SettingsUrl"));
+#if DEBUG
+            var appSettings = Configuration.Get<AppSettings>();
+#else
+            var appSettings = HttpSettingsLoader.Load<AppSettings>(Configuration.GetValue<string>("SettingsUrl"));
+#endif
             var log = CreateLogWithSlack(services, appSettings);
 
             builder.RegisterModule(new JobModule(appSettings.BitcoinTransactionAggregatorJob, log));
