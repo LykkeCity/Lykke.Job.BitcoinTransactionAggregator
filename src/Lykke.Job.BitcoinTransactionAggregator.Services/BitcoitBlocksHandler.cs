@@ -68,7 +68,7 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
 
             int blockNumner = await _bitcoinAggRepository.GetNextBlockId();
             await _log.WriteInfoAsync(ComponentName, "Process started", null,
-                $"Bitcoint height");
+                $"Bitcoint height {blockNumner}");
             int blockHeight = await _rpcClient.GetBlockCountAsync();
             while (blockNumner <= blockHeight - (_settings.NumberOfConfirm - 1))
             {

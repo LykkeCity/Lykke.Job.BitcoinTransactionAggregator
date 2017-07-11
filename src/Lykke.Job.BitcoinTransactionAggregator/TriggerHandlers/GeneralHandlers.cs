@@ -24,7 +24,6 @@ namespace Lykke.Job.BitcoinTransactionAggregator.TriggerHandlers
         {
             try
             {
-
                 _healthService.TraceBbServiceStarted();
 
                 await _bitcoitBlocksHandler.ProcessAsync();
