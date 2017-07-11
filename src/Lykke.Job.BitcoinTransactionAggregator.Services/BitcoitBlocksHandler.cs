@@ -18,6 +18,7 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
     // NOTE: This is job service class example
     public class BitcoitBlocksHandler : IBitcoitBlocksHandler
     {
+        private static readonly string ComponentName = "Lykke.Job.BitcoinTransactionAggregator";
         private readonly AppSettings.BitcoinTransactionAggregatorSettings _settings;
         private readonly IBitcoinAggRepository _bitcoinAggRepository;
         private readonly RPCClient _rpcClient;
@@ -38,8 +39,9 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
         }
         public async Task ProcessAsync()
         {
-          
 
+            await _log.WriteInfoAsync(ComponentName, "Process started", null,
+                $"ProcessAsync rised");
             //IBitcoinAggRepository bitcoinRepo =
             //    new BitcoinAggRepository(
             //        new AzureTableStorage<BitcoinAggEntity>(
@@ -65,6 +67,8 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
 
 
             int blockNumner = await _bitcoinAggRepository.GetNextBlockId();
+            await _log.WriteInfoAsync(ComponentName, "Process started", null,
+                $"Bitcoint height");
             int blockHeight = await _rpcClient.GetBlockCountAsync();
             while (blockNumner <= blockHeight - (_settings.NumberOfConfirm - 1))
             {
@@ -157,7 +161,7 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
      
         private async Task UpdateCountDown(int i)
         {
-            await _log.WriteInfoAsync("Lykke.Job.BitcoinTransactionAggregator", "Handle new block", "On block handled",
+            await _log.WriteInfoAsync(ComponentName, "Handle new block", "On block handled",
                 $"Need to handle {i} block(s)");
         }
 
