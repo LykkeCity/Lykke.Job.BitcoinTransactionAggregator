@@ -41,7 +41,8 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                 ExchangeName = _settings.WalletBroadcastRabbit.ExchangeName
             }).SetPublishStrategy(new DefaultFnoutPublishStrategy("", true))
                 .SetSerializer(new WalletBradcastSerializer())
-                .SetLogger(_log);
+                .SetLogger(_log)
+                .Start();
         }
 
 
