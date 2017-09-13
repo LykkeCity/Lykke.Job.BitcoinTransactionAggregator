@@ -123,7 +123,11 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                     }
                 }
 
+                await _log.WriteInfoAsync(ComponentName, "Update wallets", null,
+                    $"Wallets count: {wallets}");
                 await UpdateWallets(wallets, blockNumner);
+                await _log.WriteInfoAsync(ComponentName, "Update blok number", null,
+                    "Update blok number");
                 blockNumner++;
                 await _bitcoinAggRepository.SetNextBlockId(blockNumner);
                 blockHeight = await _rpcClient.GetBlockCountAsync();
@@ -133,14 +137,20 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
 
         private async Task UpdateWallets(List<WalletModel> wallets, int blockNumner)
         {
+            await _log.WriteInfoAsync(ComponentName, "Update blok number", null,
+                "Get our wallets");
             var ourResponse = await _payWalletService.GetLykkeWalletsWithHttpMessagesAsync(wallets.Select(w=>w.Address).ToList());
             var our = ourResponse?.Body as WalletResponseModel;
+            await _log.WriteInfoAsync(ComponentName, "Update blok number", null,
+                our == null ? "Error with LykkeWalletsWithHttpMessagesAsync" : $"Got  {our.Wallets.Count} wallets");
             if (our == null) return;
 
             var ourWallets = (from w in wallets
                 join ow in our.Wallets on w.Address equals ow.WalletAddress
                 select w).ToList();
 
+            await _log.WriteInfoAsync(ComponentName, "Update blok number", null,
+                "store transactions");
             foreach (var ourWallet in ourWallets)
             {
                 await _bitcoinAggRepository.SetTransactionAsync(new BitcoinAggEntity
@@ -151,7 +161,8 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                     BlockNumber = blockNumner
                 });
             }
-
+            await _log.WriteInfoAsync(ComponentName, "Update blok number", null,
+                "broadcast if need");
             if (_settings.NeedBroadcast && ourWallets.Count > 0)
             {
                 await _bitcoinBroadcast.BroadcastMessage(new WalletMqModel{Wallets = ourWallets});
