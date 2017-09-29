@@ -41,12 +41,9 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                 .CreateForPublisher(_settings.WalletBroadcastRabbit.ConnectionString, _settings.WalletBroadcastRabbit.ExchangeName);
 
 
-            _publisher = new RabbitMqPublisher<WalletMqModel>(new RabbitMqSubscriptionSettings
-            {
-                ConnectionString = _settings.WalletBroadcastRabbit.ConnectionString,
-                ExchangeName = _settings.WalletBroadcastRabbit.ExchangeName
-            }).SetPublishStrategy(new DefaultFanoutPublishStrategy(settings))
+            _publisher = new RabbitMqPublisher<WalletMqModel>(settings).SetPublishStrategy(new DefaultFanoutPublishStrategy(settings))
                 .SetSerializer(new WalletBradcastSerializer())
+                .DisableInMemoryQueuePersistence()
                 .SetLogger(_log)
                 .Start();
         }
