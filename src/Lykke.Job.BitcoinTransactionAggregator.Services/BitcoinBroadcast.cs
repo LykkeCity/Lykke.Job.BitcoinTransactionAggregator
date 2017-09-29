@@ -17,7 +17,7 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
     {
         private readonly ILog _log;
         private readonly AppSettings.BitcoinTransactionAggregatorSettings _settings;
-        private  RabbitMqPublisher <WalletMqModel> _publisher;
+        private RabbitMqPublisher<WalletMqModel> _publisher;
 
         public BitcoinBroadcast(AppSettings.BitcoinTransactionAggregatorSettings settings, ILog log)
         {
@@ -35,11 +35,17 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
 
         public void Start()
         {
-            _publisher = new RabbitMqPublisher<WalletMqModel>(new RabbitMqPublisherSettings
+
+            var settings = RabbitMqSubscriptionSettings
+
+                .CreateForPublisher(_settings.WalletBroadcastRabbit.ConnectionString, _settings.WalletBroadcastRabbit.ExchangeName);
+
+
+            _publisher = new RabbitMqPublisher<WalletMqModel>(new RabbitMqSubscriptionSettings
             {
                 ConnectionString = _settings.WalletBroadcastRabbit.ConnectionString,
                 ExchangeName = _settings.WalletBroadcastRabbit.ExchangeName
-            }).SetPublishStrategy(new DefaultFnoutPublishStrategy("", true))
+            }).SetPublishStrategy(new DefaultFanoutPublishStrategy(settings))
                 .SetSerializer(new WalletBradcastSerializer())
                 .SetLogger(_log)
                 .Start();

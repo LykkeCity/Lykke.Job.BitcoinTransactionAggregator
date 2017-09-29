@@ -40,7 +40,7 @@ namespace Lykke.Job.BitcoinTransactionAggregator
 
                 triggerHost = new TriggerHost(webHost.Services);
 
-                webHostTask = Task.Factory.StartNew(() => webHost.Run(webHostCancellationTokenSource.Token));
+                webHostTask = Task.Factory.StartNew(() => webHost.Run());
                 triggerHostTask = triggerHost.Start();
 
                 // WhenAny to handle any task termination with exception, 
