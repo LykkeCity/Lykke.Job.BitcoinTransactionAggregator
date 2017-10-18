@@ -129,7 +129,7 @@ namespace Lykke.Job.BitcoinTransactionAggregator
 
                 var persistenceManager = new LykkeLogToAzureStoragePersistenceManager(
 
-                    AzureTableStorage<LogEntity>.Create(dbLogConnectionStringManager, "LykkeServiceLog", consoleLogger),
+                    AzureTableStorage<LogEntity>.Create(dbLogConnectionStringManager, "BitcoinTransactionAggregatorLog", consoleLogger),
 
                     consoleLogger);
 

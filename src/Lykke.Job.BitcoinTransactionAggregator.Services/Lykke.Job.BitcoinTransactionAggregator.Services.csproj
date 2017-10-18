@@ -5,12 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lykke.AzureRepositories" Version="1.0.82" />
-    <PackageReference Include="Lykke.Common" Version="1.1.99" />
-    <PackageReference Include="Lykke.Common.Entities" Version="1.0.26" />
-    <PackageReference Include="Lykke.Core" Version="1.0.82" />
-    <PackageReference Include="Lykke.Pay.Service.Wallets.Client" Version="1.0.7" />
-    <PackageReference Include="Lykke.RabbitMqBroker" Version="2.2.2" />
+    <PackageReference Include="Lykke.AzureRepositories" Version="1.0.83" />
+    <PackageReference Include="Lykke.Common" Version="3.0.2" />
+    <PackageReference Include="Lykke.Common.Entities" Version="1.0.27" />
+    <PackageReference Include="Lykke.Core" Version="1.0.83" />
+    <PackageReference Include="Lykke.Pay.Service.Wallets.Client" Version="1.0.10" />
+    <PackageReference Include="Lykke.RabbitMqBroker" Version="4.0.1" />
     <PackageReference Include="NBitcoin" Version="4.0.0.38" />
   </ItemGroup>
 

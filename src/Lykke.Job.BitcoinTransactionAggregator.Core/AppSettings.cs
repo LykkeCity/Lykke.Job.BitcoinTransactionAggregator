@@ -11,6 +11,7 @@
             public ServicesSettings Services { get; set; }
             public int NumberOfConfirm { get; set; }
             public bool NeedBroadcast { get; set; }
+            public string EncriptionPassword { get; set; }
             public WalletBradcastRabbitSettings WalletBroadcastRabbit { get; set; }
             public RpcSettings Rpc { get; set; }
         }

@@ -55,6 +55,21 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Modules
                 .As<IBitcoinAggRepository>()
                 .SingleInstance();
 
+            IMerchantWalletRepository merchantWalletRepository =
+                new MerchantWalletRepository(new AzureTableStorage<MerchantWalletEntity>(
+                    _settings.Db.MerchantWalletConnectionString, "MerchantWallets",
+                    null));
+            IMerchantWalletHistoryRepository merchantWalletHistoryRepository =
+                new MerchantWalletHistoryRepository(new AzureTableStorage<MerchantWalletHistoryEntity>(
+                    _settings.Db.MerchantWalletConnectionString,
+                    "MerchantWalletsHistory", null));
+
+            builder.RegisterInstance(merchantWalletRepository)
+                .SingleInstance();
+
+            builder.RegisterInstance(merchantWalletHistoryRepository)
+                .SingleInstance();
+
             var client = new RPCClient(
                 new NetworkCredential(_settings.Rpc.UserName,
                     _settings.Rpc.Password),
