@@ -39,7 +39,7 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
             var settings = RabbitMqSubscriptionSettings
 
                 .CreateForPublisher(_settings.WalletBroadcastRabbit.ConnectionString, _settings.WalletBroadcastRabbit.ExchangeName);
-
+            settings.IsDurable = true;
 
             _publisher = new RabbitMqPublisher<WalletMqModel>(settings).SetPublishStrategy(new DefaultFanoutPublishStrategy(settings))
                 .SetSerializer(new WalletBradcastSerializer())
