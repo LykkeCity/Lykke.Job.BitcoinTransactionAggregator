@@ -11,6 +11,7 @@ using Lykke.Job.BitcoinTransactionAggregator.Core.Services;
 using Lykke.Job.BitcoinTransactionAggregator.Services;
 using Lykke.Pay.Service.Wallets.Client;
 using Microsoft.Extensions.DependencyInjection;
+using NBitcoin;
 using NBitcoin.RPC;
 
 namespace Lykke.Job.BitcoinTransactionAggregator.Modules
@@ -73,7 +74,7 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Modules
             var client = new RPCClient(
                 new NetworkCredential(_settings.Rpc.UserName,
                     _settings.Rpc.Password),
-                new Uri(_settings.Rpc.Url));
+                new Uri(_settings.Rpc.Url), Network.GetNetwork(_settings.Rpc.Network));
             builder.RegisterInstance(client)
                 .As<RPCClient>()
                 .SingleInstance();
