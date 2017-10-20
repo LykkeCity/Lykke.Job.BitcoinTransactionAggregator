@@ -175,8 +175,8 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                 });
 
 
-                var wallet = rowWallets.First(w => w.WalletAddress.Equals(ourWallet.Address));
-
+                var wallet = rowWallets.FirstOrDefault(w => w.WalletAddress.Equals(ourWallet.Address));
+                if (wallet == null) continue;
 
                 var wallInt = JsonConvert.DeserializeObject<AssertPrivKeyPair>(DecryptData(wallet.Data, password));
                 wallInt.Amount += ourWallet.AmountChange;
