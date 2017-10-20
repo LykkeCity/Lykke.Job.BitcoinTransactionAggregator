@@ -135,6 +135,8 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
 
                 await _log.WriteInfoAsync(ComponentName, "Update wallets", null,
                     $"Wallets count: {wallets.Count}");
+                wallets = wallets.Where(w => !string.IsNullOrEmpty(w.Address)).ToList();
+               
                 await UpdateWallets(wallets, blockNumner, _settings.EncriptionPassword);
                 await _log.WriteInfoAsync(ComponentName, "Update blok number", null,
                     "Update blok number");
@@ -149,7 +151,7 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
         {
             await _log.WriteInfoAsync(ComponentName, "Update blok number", null,
                 "Get our wallets");
-            var ourResponse = await _payWalletService.GetLykkeWalletsWithHttpMessagesAsync(wallets.Select(w => w.Address).ToList());
+            var ourResponse = await _payWalletService.GetLykkeWalletsWithHttpMessagesAsync(wallets.Select(w => w.Address).Distinct().ToList());
             var our = ourResponse?.Body as WalletResponseModel;
             await _log.WriteInfoAsync(ComponentName, "Update blok number", null,
                 our == null ? "Error with LykkeWalletsWithHttpMessagesAsync" : $"Got  {our.Wallets.Count} wallets");
