@@ -161,7 +161,7 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                               join ow in our.Wallets on w.Address equals ow.WalletAddress
                               select w).ToList();
 
-            var rowWallets = (await _merchantWalletRepository.GetAllAddressAsync()).ToList();
+            //var rowWallets = (await _merchantWalletRepository.GetAllAddressAsync()).ToList();
 
             await _log.WriteInfoAsync(ComponentName, "Update blok number", null,
                 "store transactions");
@@ -177,21 +177,21 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                 });
 
 
-                var wallet = rowWallets.FirstOrDefault(w => w.WalletAddress.Equals(ourWallet.Address));
-                if (wallet == null) continue;
+                //var wallet = rowWallets.FirstOrDefault(w => w.WalletAddress.Equals(ourWallet.Address));
+                //if (wallet == null) continue;
 
-                var wallInt = JsonConvert.DeserializeObject<AssertPrivKeyPair>(DecryptData(wallet.Data, password));
-                wallInt.Amount += ourWallet.AmountChange;
+                //var wallInt = JsonConvert.DeserializeObject<AssertPrivKeyPair>(DecryptData(wallet.Data, password));
+                //wallInt.Amount += ourWallet.AmountChange;
 
-                var encriptedData = EncryptData(JsonConvert.SerializeObject(wallInt), password);
-                await _merchantWalletRepository.SaveNewAddressAsync(new MerchantWalletEntity
-                {
-                    MerchantId = wallet.MerchantId,
-                    WalletAddress = wallInt.Address,
-                    Data = encriptedData
-                });
+                //var encriptedData = EncryptData(JsonConvert.SerializeObject(wallInt), password);
+                //await _merchantWalletRepository.SaveNewAddressAsync(new MerchantWalletEntity
+                //{
+                //    MerchantId = wallet.MerchantId,
+                //    WalletAddress = wallInt.Address,
+                //    Data = encriptedData
+                //});
 
-                await _merchantWalletHistoryRepository.SaveNewChangeRequestAsync(wallInt.Address, ourWallet.AmountChange, "NA", "Aggregator");
+                //await _merchantWalletHistoryRepository.SaveNewChangeRequestAsync(wallInt.Address, ourWallet.AmountChange, "NA", "Aggregator");
             }
             await _log.WriteInfoAsync(ComponentName, "Update blok number", null,
                 "broadcast if need");
