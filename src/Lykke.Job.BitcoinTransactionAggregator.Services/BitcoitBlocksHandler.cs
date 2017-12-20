@@ -78,8 +78,8 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
 
 
             int blockNumner = await _bitcoinAggRepository.GetNextBlockId();
-            
-           // blockNumner = blockNumner > 76030 ? 75930 : oldblockNumner + 1;
+
+            //blockNumner = 153167; //blockNumner > 76030 ? 75930 : oldblockNumner + 1;
             //oldblockNumner  = blockNumner;
             await _log.WriteInfoAsync(ComponentName, "Process started", null,
                 $"Bitcoint height {blockNumner}");
