@@ -80,6 +80,7 @@ namespace Lykke.Job.BitcoinTransactionAggregator
             app.UseMvc();
             app.UseSwagger();
             app.UseSwaggerUi();
+            app.UseStaticFiles();
 
             appLifetime.ApplicationStopped.Register(() =>
             {
