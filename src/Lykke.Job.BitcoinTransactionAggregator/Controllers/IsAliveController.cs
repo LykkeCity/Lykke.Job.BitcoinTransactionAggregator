@@ -3,7 +3,8 @@ using System.Net;
 using Lykke.Job.BitcoinTransactionAggregator.Core.Services;
 using Lykke.Job.BitcoinTransactionAggregator.Models;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.SwaggerGen.Annotations;
+using Swashbuckle.AspNetCore.SwaggerGen;
+
 
 namespace Lykke.Job.BitcoinTransactionAggregator.Controllers
 {

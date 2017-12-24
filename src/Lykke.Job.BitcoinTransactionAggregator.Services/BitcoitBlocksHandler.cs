@@ -79,12 +79,12 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
 
             int blockNumner = await _bitcoinAggRepository.GetNextBlockId();
 
-            //blockNumner = 153167; //blockNumner > 76030 ? 75930 : oldblockNumner + 1;
+            //blockNumner = 154530; //blockNumner > 76030 ? 75930 : oldblockNumner + 1;
             //oldblockNumner  = blockNumner;
             await _log.WriteInfoAsync(ComponentName, "Process started", null,
                 $"Bitcoint height {blockNumner}");
             int blockHeight = await _rpcClient.GetBlockCountAsync();
-            while (blockNumner <= blockHeight - (_settings.NumberOfConfirm - 1))
+            while (blockNumner <= blockHeight /*- (_settings.NumberOfConfirm - 1)*/)
             {
                 List<WalletModel> wallets = new List<WalletModel>();
                 var block = await _rpcClient.GetBlockAsync(blockNumner);
