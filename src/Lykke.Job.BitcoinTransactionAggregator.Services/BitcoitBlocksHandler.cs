@@ -53,102 +53,89 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
 
             await _log.WriteInfoAsync(ComponentName, "Process started", null,
                 $"ProcessAsync rised");
-            //IBitcoinAggRepository bitcoinRepo =
-            //    new BitcoinAggRepository(
-            //        new AzureTableStorage<BitcoinAggEntity>(
-            //            generalSettings.LykkePayJobBitcointHandle.Db.MerchantWalletConnectionString, "BitcoinAgg",
-            //            null),
-            //        new AzureTableStorage<BitcoinHeightEntity>(
-            //            generalSettings.LykkePayJobBitcointHandle.Db.MerchantWalletConnectionString, "BitcoinHeight",
-            //            null));
-            //IMerchantWalletRepository merchantWalletRepository =
-            //    new MerchantWalletRepository(new AzureTableStorage<MerchantWalletEntity>(
-            //        generalSettings.LykkePayJobBitcointHandle.Db.MerchantWalletConnectionString, "MerchantWallets",
-            //        null));
-            //IMerchantWalletHistoryRepository merchantWalletHistoryRepository =
-            //    new MerchantWalletHistoryRepository(new AzureTableStorage<MerchantWalletHistoryEntity>(
-            //        generalSettings.LykkePayJobBitcointHandle.Db.MerchantWalletConnectionString,
-            //        "MerchantWalletsHistory", null));
 
-            //var client =
-            //    new rpcClient(
-            //        new NetworkCredential(generalSettings.LykkePayJobBitcointHandle.Rpc.UserName,
-            //            generalSettings.LykkePayJobBitcointHandle.Rpc.Password),
-            //        new Uri(generalSettings.LykkePayJobBitcointHandle.Rpc.Url));
-
-
-            int blockNumner = await _bitcoinAggRepository.GetNextBlockId();
-
-            //blockNumner = 154530; //blockNumner > 76030 ? 75930 : oldblockNumner + 1;
-            //oldblockNumner  = blockNumner;
-            await _log.WriteInfoAsync(ComponentName, "Process started", null,
-                $"Bitcoint height {blockNumner}");
-            int blockHeight = await _rpcClient.GetBlockCountAsync();
-            while (blockNumner <= blockHeight /*- (_settings.NumberOfConfirm - 1)*/)
+            try
             {
-                List<WalletModel> wallets = new List<WalletModel>();
-                var block = await _rpcClient.GetBlockAsync(blockNumner);
-                var inTransactions = new List<String>();
-                foreach (var transaction in block.Transactions)
+                int blockNumner = await _bitcoinAggRepository.GetNextBlockId();
+
+                //blockNumner = 154530; //blockNumner > 76030 ? 75930 : oldblockNumner + 1;
+                //oldblockNumner  = blockNumner;
+                await _log.WriteInfoAsync(ComponentName, "Process started", null,
+                    $"Bitcoint height {blockNumner}");
+                int blockHeight = await _rpcClient.GetBlockCountAsync();
+                while (blockNumner <= blockHeight /*- (_settings.NumberOfConfirm - 1)*/)
                 {
-                    foreach (var txIn in transaction.Inputs)
+                    List<WalletModel> wallets = new List<WalletModel>();
+                    var block = await _rpcClient.GetBlockAsync(blockNumner);
+                    var inTransactions = new List<String>();
+                    foreach (var transaction in block.Transactions)
                     {
-
-                        var prevTx = txIn.PrevOut.Hash;
-                        if (prevTx.ToString() == "0000000000000000000000000000000000000000000000000000000000000000")
+                        foreach (var txIn in transaction.Inputs)
                         {
-                            continue;
+
+                            var prevTx = txIn.PrevOut.Hash;
+                            if (prevTx.ToString() == "0000000000000000000000000000000000000000000000000000000000000000")
+                            {
+                                continue;
+                            }
+                            uint prevN = txIn.PrevOut.N;
+                            var pTx = (await _rpcClient.GetRawTransactionAsync(prevTx)).Outputs[prevN];
+                            var address = pTx.ScriptPubKey.GetDestinationAddress(_rpcClient.Network)?.ToString();
+                            if (string.IsNullOrEmpty(address))
+                            {
+                                continue;
+                            }
+                            inTransactions.Add(address);
+
+                            var oTx = (from t in transaction.Outputs
+                                let otAddress = t.ScriptPubKey.GetDestinationAddress(_rpcClient.Network)?.ToString()
+                                where otAddress != null && otAddress.Equals(address)
+                                select t).FirstOrDefault();
+                            if (oTx == null)
+                            {
+                                continue;
+                            }
+
+                            var delta = (double)(oTx.Value - pTx.Value).ToDecimal(MoneyUnit.BTC);
+                            wallets.Add(new WalletModel { Address = address, AmountChange = delta, TransactionId = transaction.GetHash().ToString() });
+
                         }
-                        uint prevN = txIn.PrevOut.N;
-                        var pTx = (await _rpcClient.GetRawTransactionAsync(prevTx)).Outputs[prevN];
-                        var address = pTx.ScriptPubKey.GetDestinationAddress(_rpcClient.Network)?.ToString();
-                        if (string.IsNullOrEmpty(address))
+
+                        foreach (var txOut in transaction.Outputs)
                         {
-                            continue;
+                            var outAddress = txOut.ScriptPubKey.GetDestinationAddress(_rpcClient.Network)?.ToString();
+                            if (inTransactions.Any(itx => itx.Equals(outAddress)))
+                            {
+                                continue;
+                            }
+
+
+                            var delta = (double)txOut.Value.ToDecimal(MoneyUnit.BTC);
+
+                            wallets.Add(new WalletModel { Address = outAddress, AmountChange = delta, TransactionId = transaction.GetHash().ToString() });
                         }
-                        inTransactions.Add(address);
-
-                        var oTx = (from t in transaction.Outputs
-                                   let otAddress = t.ScriptPubKey.GetDestinationAddress(_rpcClient.Network)?.ToString()
-                                   where otAddress != null && otAddress.Equals(address)
-                                   select t).FirstOrDefault();
-                        if (oTx == null)
-                        {
-                            continue;
-                        }
-
-                        var delta = (double)(oTx.Value - pTx.Value).ToDecimal(MoneyUnit.BTC);
-                        wallets.Add(new WalletModel { Address = address, AmountChange = delta, TransactionId = transaction.GetHash().ToString() });
-
                     }
 
-                    foreach (var txOut in transaction.Outputs)
-                    {
-                        var outAddress = txOut.ScriptPubKey.GetDestinationAddress(_rpcClient.Network)?.ToString();
-                        if (inTransactions.Any(itx => itx.Equals(outAddress)))
-                        {
-                            continue;
-                        }
+                    await _log.WriteInfoAsync(ComponentName, "Update wallets", null,
+                        $"Wallets count: {wallets.Count}");
+                    wallets = wallets.Where(w => !string.IsNullOrEmpty(w.Address)).ToList();
 
-
-                        var delta = (double)txOut.Value.ToDecimal(MoneyUnit.BTC);
-
-                        wallets.Add(new WalletModel { Address = outAddress, AmountChange = delta, TransactionId = transaction.GetHash().ToString() });
-                    }
+                    await UpdateWallets(wallets, blockNumner, _settings.EncriptionPassword);
+                    await _log.WriteInfoAsync(ComponentName, "Update blok number", null,
+                        "Update blok number");
+                    blockNumner++;
+                    await _bitcoinAggRepository.SetNextBlockId(blockNumner);
+                    blockHeight = await _rpcClient.GetBlockCountAsync();
+                    await UpdateCountDown(blockHeight - blockNumner);
                 }
-
-                await _log.WriteInfoAsync(ComponentName, "Update wallets", null,
-                    $"Wallets count: {wallets.Count}");
-                wallets = wallets.Where(w => !string.IsNullOrEmpty(w.Address)).ToList();
-               
-                await UpdateWallets(wallets, blockNumner, _settings.EncriptionPassword);
-                await _log.WriteInfoAsync(ComponentName, "Update blok number", null,
-                    "Update blok number");
-                blockNumner++;
-                await _bitcoinAggRepository.SetNextBlockId(blockNumner);
-                blockHeight = await _rpcClient.GetBlockCountAsync();
-                await UpdateCountDown(blockHeight - blockNumner);
             }
+            catch (Exception e)
+            {
+                await _log.WriteErrorAsync(ComponentName, "Process failed", e);
+                throw;
+            }
+
+            
         }
 
         private async Task UpdateWallets(List<WalletModel> wallets, int blockNumner, string password)
