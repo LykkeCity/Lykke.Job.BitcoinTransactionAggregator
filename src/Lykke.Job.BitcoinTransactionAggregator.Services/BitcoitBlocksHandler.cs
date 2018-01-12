@@ -47,7 +47,7 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
             _merchantWalletHistoryRepository = merchantWalletHistoryRepository;
         }
 
-       // private int oldblockNumner;
+        // private int oldblockNumner;
         public async Task ProcessAsync()
         {
 
@@ -63,13 +63,20 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                 await _log.WriteInfoAsync(ComponentName, "Process started", null,
                     $"Bitcoint height {blockNumner}");
                 int blockHeight = await _rpcClient.GetBlockCountAsync();
+                await _log.WriteInfoAsync(ComponentName, "Read heidght of blocks", null,
+                    $"Total height {blockHeight}");
                 while (blockNumner <= blockHeight /*- (_settings.NumberOfConfirm - 1)*/)
                 {
                     List<WalletModel> wallets = new List<WalletModel>();
                     var block = await _rpcClient.GetBlockAsync(blockNumner);
                     var inTransactions = new List<String>();
+                    await _log.WriteInfoAsync(ComponentName, "Reqding block", null,
+                        $"Total height {blockHeight}");
+                    await _log.WriteInfoAsync(ComponentName, "Read {block.Transactions} calculator in {blockNumner}", null,
+                        $"Total height {blockHeight}");
                     foreach (var transaction in block.Transactions)
                     {
+                        
                         foreach (var txIn in transaction.Inputs)
                         {
 
@@ -79,7 +86,19 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                                 continue;
                             }
                             uint prevN = txIn.PrevOut.N;
-                            var pTx = (await _rpcClient.GetRawTransactionAsync(prevTx)).Outputs[prevN];
+                            TxOut pTx;
+                            try
+                            {
+                                pTx = (await _rpcClient.GetRawTransactionAsync(prevTx)).Outputs[prevN];
+                            }
+                            catch (Exception ex)
+                            {
+                                await _log.WriteWarningAsync(ComponentName, "Reading in transaction",
+                                    @"Can't get transaction info for {prevTx} transaction and {prevN} N in {blockNumner} block of {blockHeight}.",
+                                    ex);
+                                con
+                            }
+
                             var address = pTx.ScriptPubKey.GetDestinationAddress(_rpcClient.Network)?.ToString();
                             if (string.IsNullOrEmpty(address))
                             {
@@ -88,9 +107,9 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                             inTransactions.Add(address);
 
                             var oTx = (from t in transaction.Outputs
-                                let otAddress = t.ScriptPubKey.GetDestinationAddress(_rpcClient.Network)?.ToString()
-                                where otAddress != null && otAddress.Equals(address)
-                                select t).FirstOrDefault();
+                                       let otAddress = t.ScriptPubKey.GetDestinationAddress(_rpcClient.Network)?.ToString()
+                                       where otAddress != null && otAddress.Equals(address)
+                                       select t).FirstOrDefault();
                             if (oTx == null)
                             {
                                 continue;
@@ -135,7 +154,7 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                 throw;
             }
 
-            
+
         }
 
         private async Task UpdateWallets(List<WalletModel> wallets, int blockNumner, string password)
