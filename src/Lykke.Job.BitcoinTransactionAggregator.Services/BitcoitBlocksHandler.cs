@@ -71,6 +71,8 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                     
                     await _log.WriteInfoAsync(ComponentName, $"Read {block.Transactions.Count} transaction in {blockNumner}", null, $"Total height {blockHeight}");
 
+
+                    var errorCount = 0;
                     foreach (var transaction in block.Transactions)
                     {
                         
@@ -89,12 +91,11 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                                 var trans = await _rpcClient.GetRawTransactionAsync(prevTx);
                                 pTx = trans.Outputs[prevN];
                             }
-                            catch (Exception ex)
-                            {                               
-                                var info = $"Can't get transaction info for {prevTx} transaction and {prevN} N in {blockNumner} block of {blockHeight}.";
-                                await _log.WriteWarningAsync(ComponentName, "Reading in transaction",
-                                    info,
-                                    ex);
+                            catch (Exception)
+                            {
+                                //var info = $"Can't get transaction info for {prevTx} transaction and {prevN} N in {blockNumner} block of {blockHeight}.";
+                                //await _log.WriteWarningAsync(ComponentName, "Reading in transaction", info, ex);
+                                errorCount++;
                                 continue;
                             }
 
@@ -134,6 +135,11 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                         }
                     }
 
+                    if (errorCount > 0)
+                    {
+                        await _log.WriteInfoAsync(ComponentName, "", $"Count of transatrion with error: {errorCount}, we skip this");
+                    }
+
                     await _log.WriteInfoAsync(ComponentName, "Update wallets", null, $"Wallets count: {wallets.Count}");
                     wallets = wallets.Where(w => !string.IsNullOrEmpty(w.Address)).ToList();
 
@@ -156,12 +162,10 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
 
         private async Task UpdateWallets(List<WalletModel> wallets, int blockNumner, string password)
         {
-            await _log.WriteInfoAsync(ComponentName, "Update blok number", null,
-                "Get our wallets");
+            await _log.WriteInfoAsync(ComponentName, "Update blok number", null, "Get our wallets");
             var ourResponse = await _payWalletService.GetLykkeWalletsWithHttpMessagesAsync(wallets.Select(w => w.Address).Distinct().ToList());
             var our = ourResponse?.Body as WalletResponseModel;
-            await _log.WriteInfoAsync(ComponentName, "Update blok number", null,
-                our == null ? "Error with LykkeWalletsWithHttpMessagesAsync" : $"Got  {our.Wallets.Count} wallets");
+            await _log.WriteInfoAsync(ComponentName, "Update blok number", null, our == null ? "Error with LykkeWalletsWithHttpMessagesAsync" : $"Got  {our.Wallets.Count} wallets");
             if (our == null) return;
 
             var ourWallets = (from w in wallets
