@@ -51,8 +51,7 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
         public async Task ProcessAsync()
         {
 
-            await _log.WriteInfoAsync(ComponentName, "Process started", null,
-                $"ProcessAsync rised");
+            await _log.WriteInfoAsync(ComponentName, "Process started", null, $"ProcessAsync rised");
 
             try
             {
@@ -60,20 +59,18 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
 
                 //blockNumner = 154530; //blockNumner > 76030 ? 75930 : oldblockNumner + 1;
                 //oldblockNumner  = blockNumner;
-                await _log.WriteInfoAsync(ComponentName, "Process started", null,
-                    $"Bitcoint height {blockNumner}");
+                await _log.WriteInfoAsync(ComponentName, "Process started", null, $"Bitcoint height {blockNumner}");
                 int blockHeight = await _rpcClient.GetBlockCountAsync();
-                await _log.WriteInfoAsync(ComponentName, "Read heidght of blocks", null,
-                    $"Total height {blockHeight}");
+                await _log.WriteInfoAsync(ComponentName, "Read heidght of blocks", null, $"Total height {blockHeight}");
                 while (blockNumner <= blockHeight /*- (_settings.NumberOfConfirm - 1)*/)
                 {
                     List<WalletModel> wallets = new List<WalletModel>();
                     var block = await _rpcClient.GetBlockAsync(blockNumner);
                     var inTransactions = new List<String>();
-                    await _log.WriteInfoAsync(ComponentName, "Reqding block", null,
-                        $"Total height {blockHeight}");
-                    await _log.WriteInfoAsync(ComponentName, "Read {block.Transactions} calculator in {blockNumner}", null,
-                        $"Total height {blockHeight}");
+                    await _log.WriteInfoAsync(ComponentName, "Reqding block", null, $"Total height {blockHeight}");
+                    
+                    await _log.WriteInfoAsync(ComponentName, $"Read {block.Transactions.Count} transaction in {blockNumner}", null, $"Total height {blockHeight}");
+
                     foreach (var transaction in block.Transactions)
                     {
                         
@@ -89,12 +86,14 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                             TxOut pTx;
                             try
                             {
-                                pTx = (await _rpcClient.GetRawTransactionAsync(prevTx)).Outputs[prevN];
+                                var trans = await _rpcClient.GetRawTransactionAsync(prevTx);
+                                pTx = trans.Outputs[prevN];
                             }
                             catch (Exception ex)
-                            {
-                                await _log.WriteWarningAsync(ComponentName, "Reading in transaction", 
-                                    $"Can't get transaction info for {prevTx} transaction and {prevN} N in {blockNumner} block of {blockHeight}.",
+                            {                               
+                                var info = $"Can't get transaction info for {prevTx} transaction and {prevN} N in {blockNumner} block of {blockHeight}.";
+                                await _log.WriteWarningAsync(ComponentName, "Reading in transaction",
+                                    info,
                                     ex);
                                 continue;
                             }
@@ -135,13 +134,11 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                         }
                     }
 
-                    await _log.WriteInfoAsync(ComponentName, "Update wallets", null,
-                        $"Wallets count: {wallets.Count}");
+                    await _log.WriteInfoAsync(ComponentName, "Update wallets", null, $"Wallets count: {wallets.Count}");
                     wallets = wallets.Where(w => !string.IsNullOrEmpty(w.Address)).ToList();
 
                     await UpdateWallets(wallets, blockNumner, _settings.EncriptionPassword);
-                    await _log.WriteInfoAsync(ComponentName, "Update blok number", null,
-                        "Update blok number");
+                    await _log.WriteInfoAsync(ComponentName, "Update blok number", null, "Update blok number");
                     blockNumner++;
                     await _bitcoinAggRepository.SetNextBlockId(blockNumner);
                     blockHeight = await _rpcClient.GetBlockCountAsync();
