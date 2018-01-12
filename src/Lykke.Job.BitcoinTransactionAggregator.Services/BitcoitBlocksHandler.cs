@@ -96,7 +96,7 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                                 await _log.WriteWarningAsync(ComponentName, "Reading in transaction",
                                     @"Can't get transaction info for {prevTx} transaction and {prevN} N in {blockNumner} block of {blockHeight}.",
                                     ex);
-                                con
+                                continue;
                             }
 
                             var address = pTx.ScriptPubKey.GetDestinationAddress(_rpcClient.Network)?.ToString();
