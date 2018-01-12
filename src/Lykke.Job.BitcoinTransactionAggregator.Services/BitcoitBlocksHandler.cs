@@ -93,8 +93,8 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                             }
                             catch (Exception ex)
                             {
-                                await _log.WriteWarningAsync(ComponentName, "Reading in transaction",
-                                    @"Can't get transaction info for {prevTx} transaction and {prevN} N in {blockNumner} block of {blockHeight}.",
+                                await _log.WriteWarningAsync(ComponentName, "Reading in transaction", 
+                                    $"Can't get transaction info for {prevTx} transaction and {prevN} N in {blockNumner} block of {blockHeight}.",
                                     ex);
                                 continue;
                             }
