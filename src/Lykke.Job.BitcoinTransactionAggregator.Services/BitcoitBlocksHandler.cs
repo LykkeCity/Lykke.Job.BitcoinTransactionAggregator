@@ -57,7 +57,7 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
             {
                 int blockNumner = await _bitcoinAggRepository.GetNextBlockId();
 
-                //blockNumner = 154530; //blockNumner > 76030 ? 75930 : oldblockNumner + 1;
+                blockNumner = 185429; //blockNumner > 76030 ? 75930 : oldblockNumner + 1;
                 //oldblockNumner  = blockNumner;
                 await _log.WriteInfoAsync(ComponentName, "Process started", null, $"Bitcoint height {blockNumner}");
                 int blockHeight = await _rpcClient.GetBlockCountAsync();
@@ -105,17 +105,20 @@ namespace Lykke.Job.BitcoinTransactionAggregator.Services
                                 continue;
                             }
                             inTransactions.Add(address);
-
+                            double delta;
                             var oTx = (from t in transaction.Outputs
                                        let otAddress = t.ScriptPubKey.GetDestinationAddress(_rpcClient.Network)?.ToString()
                                        where otAddress != null && otAddress.Equals(address)
                                        select t).FirstOrDefault();
                             if (oTx == null)
                             {
-                                continue;
+                                delta = -(double)pTx.Value.ToDecimal(MoneyUnit.BTC);
                             }
-
-                            var delta = (double)(oTx.Value - pTx.Value).ToDecimal(MoneyUnit.BTC);
+                            else
+                            {
+                                delta = (double)(oTx.Value - pTx.Value).ToDecimal(MoneyUnit.BTC);
+                            }
+                            
                             wallets.Add(new WalletModel { Address = address, AmountChange = delta, TransactionId = transaction.GetHash().ToString() });
 
                         }
