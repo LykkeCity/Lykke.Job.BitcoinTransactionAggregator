@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,6 +38,9 @@ namespace Lykke.Job.BitcoinTransactionAggregator
                     .UseStartup<Startup>()
                     .UseApplicationInsights()
                     .Build();
+
+                var version = typeof(Program).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+                Console.WriteLine($"Build Version {version}");
 
                 triggerHost = new TriggerHost(webHost.Services);
 
